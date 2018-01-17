@@ -51,7 +51,9 @@
 /****************************************************************************/
 
 #include <stdio.h>
+#ifdef __linux__
 #include <endian.h>
+#endif
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdint.h>

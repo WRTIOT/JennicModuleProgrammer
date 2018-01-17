@@ -66,7 +66,9 @@
 
 #include <errno.h>
 
+#ifdef __linux__
 #include <linux/types.h>
+#endif
 
 #include "uart.h"
 #include "common.h"
@@ -131,9 +133,23 @@ teStatus UART_eInitialise(char *pcDevice, int iBaudRate, int *piFileDescriptor, 
         return E_STATUS_ERROR;
     }
 
+#ifdef __linux__
     psOptions->c_iflag &= ~(INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC | IXON | IXANY | IXOFF);
+#elif defined(__MACH__) && defined(__APPLE__)
+    psOptions->c_iflag &= ~(INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
+#else
+#error "No support for this architecture (yet)"
+#endif
+
     psOptions->c_iflag = IGNBRK | IGNPAR;
+#ifdef __linux__
     psOptions->c_oflag &= ~(OPOST | OLCUC | ONLCR | OCRNL | ONOCR | ONLRET);
+#elif defined(__MACH__) && defined(__APPLE__)
+    psOptions->c_oflag &= ~(OPOST | ONLCR | OCRNL | ONOCR | ONLRET);
+#else
+#error "No support for this architecture (yet)"
+#endif
+
     psOptions->c_cflag &= ~(CSIZE | CSTOPB | PARENB | CRTSCTS);
     psOptions->c_cflag |= CS8 | CREAD | HUPCL | CLOCAL;
     psOptions->c_lflag &= ~(ISIG | ICANON | ECHO | IEXTEN);
@@ -194,17 +210,25 @@ teStatus UART_eSetBaudRate(int iFileDescriptor, struct termios *psOptions, int i
     case 230400:    iBaud = B230400;
 		break;
 
+#ifdef B460800
     case 460800:    iBaud = B460800;
 		break;
+#endif
 
+#ifdef B500000
     case 500000:    iBaud = B500000;
 		break;
+#endif
 
+#ifdef B921600
     case 921600:    iBaud = B921600;
     	break;
+#endif
 
+#ifdef B1000000
     case 1000000:   iBaud = B1000000;
         break;
+#endif
         
     default:
         DBG_vPrintf(TRACE_UART, "Unsupported baud rate: %d\n", iBaudRate);
